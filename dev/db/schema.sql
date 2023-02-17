@@ -5,7 +5,7 @@ USE emp_db;
 
 
 CREATE TABLE department (
-  id AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   department_name VARCHAR(30)
 );
 
@@ -14,9 +14,8 @@ CREATE TABLE employee (
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
   role_id INT,
-  manager_id INT
+  manager_id INT NULL
 );
-
 
 CREATE TABLE role (
   ID INT PRIMARY KEY,
@@ -31,15 +30,6 @@ CREATE TABLE role (
 -- will have to use FOREIGN KEY (salary_id)
 -- REFERENCES salary(id) for example
 -- ON DELETE SET NULL
-
-
-CREATE TABLE courses (
-  id INT NOT NULL,
-  course_title VARCHAR(30) NOT NULL,
-  course_description TEXT NOT NULL,
-  active BOOLEAN NOT NULL,
-  date_added DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
 
 
 
