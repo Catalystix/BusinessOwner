@@ -2,7 +2,7 @@ INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Elliot", "Smith", 1, 1),
        ("Amira", "Afzal", 2, 2),
        ("Christoper", "Lee", 3, 3),
-       ("Verónica", "Rodriguez", 4, 4),
+       ("Veronica", "Rodriguez", 4, 4),
        ("Igor", "Stein", 5, 5);
        
 INSERT INTO role (id, title, salary, department_id)
@@ -11,6 +11,7 @@ VALUES (1, "Tax Collector", 5000, 1),
        (3, "Labor Force", 3000, 3),
        (4, "Stripper", 10000, 4),
        (5, "Developer", 33000, 5);
+
 
 INSERT INTO department (id, department_name)
 VALUES (1,"Government"),
