@@ -16,14 +16,20 @@ const db = mysql.createConnection(
     // MySQL username,
     user: 'root',
     // MySQL password
-    password: '',
-    database: 'employee_db'
+    password: 'Ibetshetuckslol',
+    database: 'emp_db'
   },
   console.log(`Connected to the employee_db database.`)
 );
 
 // Query database
 db.query('SELECT * FROM employee', function (err, results) {
+  console.log(results);
+});
+db.query('SELECT * FROM role', function (err, results) {
+  console.log(results);
+});
+db.query('SELECT * FROM department', function (err, results) {
   console.log(results);
 });
 
