@@ -1,8 +1,8 @@
-const fs = require('fs');
 const express = require('express');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 require('console.table');
+require('dotenv').config();
 
 
 // create connection
@@ -18,6 +18,7 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_db database.`)
 );
 
+
 const app = express()
 const newEmpdata = [];
 
@@ -29,34 +30,40 @@ async function initialize() {
                 type: 'list',
                 message: 'What would you like to do? (use arrow keys',
                 name: 'options',
-                choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Quit'],
+                choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit'],
             },
         ])
 
     if (response.options === 'View All Employees') {
 
-        db.query('SELECT first_name, last_name, role_id, manager_id FROM employee', function (err, results) {
-            
+        db.query('SELECT employee.id, employee.first_name, employee.last_name, role.title AS RoleName, department.department_name FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id', function (err, results) {
+            if (err) throw err;
             console.table(results)
-
+            initialize();
         });
-        initialize();
-    } 
+        
+    }
 
     if (response.options === 'View All Roles') {
 
         db.query('SELECT * FROM role', function (err, results) {
+            if (err) throw err;
             console.table(results);
-
+            initialize();
         });
     }
 
     if (response.options === 'View All Departments') {
 
         db.query('SELECT * FROM department', function (err, results) {
+            if (err) throw err;
             console.table(results);
-
+            initialize();
         });
+    }
+    if (response.options === 'Add Department') {
+        addDept();
+       
     }
 
     if (response.options === 'Add Role') {
@@ -73,66 +80,84 @@ async function initialize() {
     if (response.options === 'Quit')
         process.exit(0);
 };
-initialize();
+
+
+async function addDept() {
+    const [departments] = await db.promise().query('SELECT * FROM department')
+    const addDept = await inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'Department Name?',
+                name: 'newDept',
+            }
+        ])
+    db.query('INSERT INTO department (department_name) VALUE (?)', addDept.newDept, function (err, results) {
+        if (err) throw err;
+        console.table(results);
+        initialize();
+    }); 
+};
+
 
 async function updateRole() {
-    const [departments] = await db.promise().query('SELECT id AS value, department_name AS name FROM department')
+    db.query('SELECT employee.id, employee.first_name, employee.last_name, role.title AS RoleName, department.department_name FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id')
+    const [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role')
     const [employee] = await db.promise().query('SELECT first_name AS name, id AS value FROM employee')
     const roleUpdate = await inquirer
         .prompt([
             {
                 type: 'list',
                 message: 'What is the employee name?',
-                name: 'updatedRole',
+                name: 'employeeRole',
                 choices: employee
-            }, 
-            {
-                type: 'input',
-                message: 'Add Employee Role',
-                name: 'title'
             },
-            {
-                type: 'input',
-                message: 'What is the employee salary?',
-                name: 'salary'
-            },
+            // {
+            //     type: 'input',
+            //     message: 'Add Employee Role',
+            //     name: 'title'
+            // },
+            // {
+            //     type: 'input',
+            //     message: 'What is the employee salary?',
+            //     name: 'salary'
+            // },
             {
                 type: 'list',
-                message: 'What is the department id?',
+                message: 'What is the department name?',
                 name: 'deptID',
-                choices: departments
+                choices: roles
             },
-            
-        ])
-        // but why its 3 values?
-        db.query('INSERT INTO role VALUES (id, title, department_id, salary)', [roleUpdate.title, roleUpdate.salary, roleUpdate.deptID], function (err, results) {
+ ])
+    
+    db.query('UPDATE employee SET role_id = ? WHERE id = ?', [roleUpdate.deptID, roleUpdate.employeeRole], function (err, results) {
         if (err) throw err;
         console.table(results);
         initialize();
-        
     });
-    
+
 };
 
 
-async function addMore() {
-    const addNewEmp = await inquirer
-        .prompt([
-            {
-                type: 'list',
-                message: 'What Would you like to do?',
-                choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Quit'],
-                name: 'add'
-            }
-        ])
+// async function addMore() {
+//     const addNewEmp = await inquirer
+//         .prompt([
+//             {
+//                 type: 'list',
+//                 message: 'What Would you like to do?',
+//                 choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Quit'],
+//                 name: 'add'
+//             }
+//         ])
 
-    if (addNewEmp.add === 'Add Employee') {
-        return initialize()
-    }
-};
+//     if (addNewEmp.add === 'Add Employee') {
+//         return initialize()
+//     }
+// };
 
 async function newEmp() {
-    const [employees] = await db.promise().query('SELECT first_name AS value FROM employee')
+    const [roles] = await db.promise().query('SELECT title AS value FROM role')
+    const [employees] = await db.promise().query('SELECT manager_id AS value FROM employee')
     console.log(employees);
     const addNew = await inquirer
         .prompt([
@@ -148,16 +173,23 @@ async function newEmp() {
             },
             {
                 type: 'list',
+                message: 'What is your role?',
+                name: 'role',
+                choices: roles
+            },
+            {
+                type: 'list',
                 message: 'Who is your Manager?',
                 name: 'manname',
                 choices: employees
-            },
+            }
         ])
-    db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [addNew.firstName, addNew.lastName, addNew.manname], function (err, results) {
+    db.query('INSERT INTO employee (first_name, last_name, manager_id) VALUE (?, ?, ?)', [addNew.firstName, addNew.lastName, addNew.manname], function (err, results) {
+        if (err) throw err;
         console.table(results);
-        
+        initialize();
     });
-    initialize();
+    
 
 };
 
@@ -165,7 +197,7 @@ async function newEmp() {
 //
 async function addRole() {
     const [departments] = await db.promise().query('SELECT id AS value, department_name AS name FROM department')
-    console.log(departments);
+
     const addRoleEmp = await inquirer
         .prompt([
             {
@@ -186,14 +218,16 @@ async function addRole() {
             },
 
         ])
-    db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [addRoleEmp.title, addRoleEmp.salary, addRoleEmp.deptID], function (err, results) {
+    db.query('INSERT INTO role (?, ?, ?, ?) VALUES (id, title, salary, department_id)', [addRoleEmp.title, addRoleEmp.salary, addRoleEmp.deptID], function (err, results) {
+        if (err) throw err;
         console.table(results);
         initialize();
     });
+    
 };
 
 
-
+initialize();
 
 
 //     .then((Response) => {

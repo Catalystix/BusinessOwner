@@ -5,15 +5,15 @@ USE emp_db;
 
 CREATE TABLE department (
   id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  department_name VARCHAR(30)
+  department_name VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE employee (
   id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
-  role_id INT NOT NULL,
-  manager_id INT NOT NULL
+  role_id INT NULL,
+  manager_id INT NULL
 );
 
 CREATE TABLE role (
