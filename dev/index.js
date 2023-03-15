@@ -218,7 +218,7 @@ async function addRole() {
             },
 
         ])
-    db.query('INSERT INTO role (?, ?, ?, ?) VALUES (id, title, salary, department_id)', [addRoleEmp.title, addRoleEmp.salary, addRoleEmp.deptID], function (err, results) {
+    db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [addRoleEmp.title, addRoleEmp.salary, addRoleEmp.deptID], function (err, results) {
         if (err) throw err;
         console.table(results);
         initialize();
